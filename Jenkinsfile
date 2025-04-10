@@ -1,4 +1,3 @@
-cat <<EOF > Jenkinsfile
 pipeline {
   agent any
 
@@ -17,7 +16,8 @@ pipeline {
 
     stage('Run Docker Container') {
       steps {
-        sh 'docker run -d -p 8081:80 --name simple-html-app simple-html-app || true'
+        sh 'docker rm -f simple-html-app || true'
+        sh 'docker run -d -p 8081:80 --name simple-html-app simple-html-app'
       }
     }
   }
@@ -28,4 +28,3 @@ pipeline {
     }
   }
 }
-EOF
