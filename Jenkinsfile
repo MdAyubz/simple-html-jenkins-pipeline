@@ -47,6 +47,7 @@ pipeline {
         stage('Deploy to AKS') {
             steps {
                 echo "Deploying to AKS..."
+		sh 'echo "Listing AKS clusters..."; az aks list -o table'
                 sh '''
                     az aks get-credentials --resource-group rg-jenkins --name testjenkkub
                     kubectl apply -f k8s-deployment.yaml
