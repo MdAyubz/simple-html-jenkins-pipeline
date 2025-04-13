@@ -48,7 +48,7 @@ pipeline {
             steps {
                 echo "Deploying to AKS..."
                 sh '''
-                    az aks get-credentials --resource-group myResourceGroup --name myAKSCluster
+                    az aks get-credentials --resource-group rg-jenkins --name myAKSCluster
                     kubectl apply -f k8s-deployment.yaml
                 '''
             }
