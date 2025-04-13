@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-html-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: simple-html
+  template:
+    metadata:
+      labels:
+        app: simple-html
+    spec:
+      containers:
+      - name: simple-html-container
+        image: myacrjenkins.azurecr.io/simple-html-app:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: simple-html-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: simple-html
+  ports:
+  - port: 80
+    targetPort: 80
+

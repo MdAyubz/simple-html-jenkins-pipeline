@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  html-app:
+    image: simple-html-app
+    container_name: html-app
+    ports:
+      - "8081:80"
+    restart: unless-stopped
