@@ -4,7 +4,6 @@ pipeline {
     environment {
         ACR_LOGIN_SERVER = 'myacrjenkins.azurecr.io'
         IMAGE_NAME = 'simple-html-app'
-        IMAGE_TAG = "build-${env.BUILD_NUMBER}"
     }
 
     stages {
@@ -16,19 +15,20 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                echo "Building Docker image..."
+                script {
+                    IMAGE_TAG = "build-${env.BUILD_NUMBER}"
+                    env.IMAGE_TAG = IMAGE_TAG
+                }
                 sh 'docker build -t $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG .'
             }
         }
 
         stage('Login to Azure & ACR') {
             steps {
-                echo "Logging in to Azure and ACR..."
                 withCredentials([
                     string(credentialsId: 'AZURE_CLIENT_ID', variable: 'AZURE_CLIENT_ID'),
                     string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'AZURE_CLIENT_SECRET'),
-                    string(credentialsId: 'AZURE_TENANT_ID', variable: 'AZURE_TENANT_ID'),
-                    string(credentialsId: 'AZURE_SUBSCRIPTION_ID', variable: 'AZURE_SUBSCRIPTION_ID')
+                    string(credentialsId: 'AZURE_TENANT_ID', variable: 'AZURE_TENANT_ID')
                 ]) {
                     sh '''
                         az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
@@ -44,12 +44,19 @@ pipeline {
             }
         }
 
+        stage('Inject Image Tag into k8s YAML') {
+            steps {
+                sh '''
+                    cp k8s-deployment-template.yaml k8s-deployment.yaml
+                    sed -i "s|<IMAGE_TAG>|$IMAGE_TAG|g" k8s-deployment.yaml
+                '''
+            }
+        }
+
         stage('Deploy to AKS') {
             steps {
-                echo "Deploying to AKS..."
-		sh 'echo "Listing AKS clusters..."; az aks list -o table'
                 sh '''
-                    az aks get-credentials --resource-group rg-jenkins --name testjenkkub
+                    az aks get-credentials --resource-group rg-jenkins --name testjenkkub --overwrite-existing
                     kubectl apply -f k8s-deployment.yaml
                 '''
             }
@@ -58,17 +65,11 @@ pipeline {
 
     post {
         always {
-            echo 'Listing all Docker containers...'
-            sh 'docker ps -a'
-            
-            echo 'Cleaning up unused Docker images and containers...'
             sh 'docker system prune -f'
-
-            echo '✅ Pipeline completed.'
+            echo '✅ Pipeline complete!'
         }
-
         failure {
-            echo '❌ Deployment failed. Please check the Jenkins logs.'
+            echo '❌ Deployment failed.'
         }
     }
 }
