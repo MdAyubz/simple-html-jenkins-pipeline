@@ -4,7 +4,7 @@ pipeline {
     environment {
         ACR_LOGIN_SERVER = 'myacrjenkins.azurecr.io'
         IMAGE_NAME = 'simple-html-app'
-        IMAGE_TAG = 'latest'
+        IMAGE_TAG = "build-${env.BUILD_NUMBER}"
     }
 
     stages {

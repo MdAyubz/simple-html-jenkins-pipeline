@@ -14,8 +14,7 @@ spec:
     spec:
       containers:
       - name: simple-html-container
-        image: myacrjenkins.azurecr.io/simple-html-app:latest
-        imagePullPolicy: Always
+        image: myacrjenkins.azurecr.io/simple-html-app:build-123
         ports:
           - containerPort: 80
 ---
